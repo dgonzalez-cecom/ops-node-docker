@@ -17,6 +17,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_CLIENT: phpredis
+      CACHE_STORE: redis
       QUEUE_CONNECTION: redis
     networks:
       - ops-network
@@ -79,6 +80,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_CLIENT: phpredis
+      CACHE_STORE: redis
       QUEUE_CONNECTION: redis
     command: php artisan horizon
     networks:
