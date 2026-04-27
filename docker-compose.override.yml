@@ -2,116 +2,30 @@ version: "3.9"
 
 services:
 
-  # 🟢 PHP-FPM (Laravel)
-  ops-node-php:
-    build:
-      context: ./ops-node-api
-      dockerfile: docker/php/Dockerfile
-    container_name: ops-node-php
-    volumes:
-      - ./ops-node-api:/var/www
-    depends_on:
-      - mysql
-      - redis
+  # PHP-FPM (Laravel) - Production
+  ops-node-api-php:
     environment:
-      APP_ENV: local
-      APP_DEBUG: "true"
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: ops_node
-      DB_USERNAME: ops_node
-      DB_PASSWORD: ops_node_secret
-      REDIS_HOST: redis
-    networks:
-      - ops-network
+      APP_ENV: production
+      APP_DEBUG: "false"
 
-  # 🔵 Nginx API
-  ops-node-api:
-    image: nginx:alpine
-    container_name: ops-node-api
-    volumes:
-      - ./ops-node-api:/var/www
-      - ./ops-node-api/docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
-    ports:
-      - "8000:80"
-    depends_on:
-      - ops-node-php
-    networks:
-      - ops-network
+  # Nginx API - Production (remove port, expose via gateway)
+  ops-node-api-nginx:
+    ports: []
 
-  # 🟡 Frontend (Vite DEV)
+  # Frontend - Production (build estático)
   ops-node-front:
     build:
-      context: ./ops-node-front
-      dockerfile: docker/node/Dockerfile
-    container_name: ops-node-front
-    volumes:
-      - ./ops-node-front:/app
-      - /app/node_modules
-    ports:
-      - "5173:5173"
-    environment:
-      VITE_API_BASE_URL: /api
-    depends_on:
-      - ops-node-api
-    networks:
-      - ops-network
+      dockerfile: docker/node/Dockerfile-PROD
+    volumes: []
+    ports: []
 
-  # 🟣 MySQL
-  mysql:
-    image: mysql:8.0
-    container_name: ops-node-mysql
+  # Horizon Worker - Production
+  ops-node-horizon-worker:
     environment:
-      MYSQL_DATABASE: ops_node
-      MYSQL_USER: ops_node
-      MYSQL_PASSWORD: ops_node_secret
-      MYSQL_ROOT_PASSWORD: root
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - ops-network
-
-  # 🔴 Redis
-  redis:
-    image: redis:7-alpine
-    container_name: ops-node-redis
-    ports:
-      - "6379:6379"
-    networks:
-      - ops-network
-
-  # ⚙️ Queue Worker (Horizon) - Development
-  horizon:
-    build:
-      context: ./ops-node-api
-      dockerfile: docker/php/Dockerfile
-    container_name: ops-node-horizon
-    volumes:
-      - ./ops-node-api:/var/www
-    depends_on:
-      - mysql
-      - redis
-    environment:
-      APP_ENV: local
-      APP_DEBUG: "true"
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: ops_node
-      DB_USERNAME: ops_node
-      DB_PASSWORD: ops_node_secret
-      REDIS_HOST: redis
-      REDIS_CLIENT: phpredis
-      QUEUE_CONNECTION: redis
+      APP_ENV: production
+      APP_DEBUG: "false"
     command: php artisan horizon
-    networks:
-      - ops-network
 
-volumes:
-  mysql_data:
+  # MySQL - Production (no change needed, already configured in base)
 
-networks:
-  ops-network:
+  # Redis - Production (no change needed)
